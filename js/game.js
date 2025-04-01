@@ -26,11 +26,11 @@ class FlagGame {
         
         // Ses efektleri - yolları düzelttim
         this.sounds = {
-            correct: new Audio('/public/sounds/correct.mp3'),
-            wrong: new Audio('/public/sounds/wrong.mp3'),
-            gameOver: new Audio('/public/sounds/game-over.mp3'),
-            hint: new Audio('/public/sounds/hint.mp3'),
-            tick: new Audio('/public/sounds/tick.mp3')
+            correct: new Audio('./public/sounds/correct.mp3'),
+            wrong: new Audio('./public/sounds/wrong.mp3'),
+            gameOver: new Audio('./public/sounds/game-over.mp3'),
+            hint: new Audio('./public/sounds/hint.mp3'),
+            tick: new Audio('./public/sounds/tick.mp3')
         };
         
         // Debug log ekleyelim

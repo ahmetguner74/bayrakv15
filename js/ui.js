@@ -132,7 +132,7 @@ class GameUI {
             // Bayrak yüklenme hatası durumunda
             this.flagImage.onerror = () => {
                 console.error(`Bayrak yüklenemedi: ${data.flag.code}`);
-                this.flagImage.src = '/public/flags/error.svg';
+                this.flagImage.src = './public/flags/error.svg';
                 this.flagImage.alt = 'Bayrak bulunamadı';
             };
         } else {

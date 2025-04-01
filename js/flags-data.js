@@ -6,8 +6,8 @@
 // Ülke verilerini yükle
 const loadFlagsData = async () => {
     try {
-        // Tam dosya yolunu belirtiyoruz
-        const response = await fetch('/flags.json');
+        // Vercel için dosya yolunu düzeltiyoruz
+        const response = await fetch('./flags.json');
         const data = await response.json();
         console.log('Bayrak verileri başarıyla yüklendi:', data.length);
         return data;
@@ -67,8 +67,8 @@ const shuffleArray = (array) => {
 
 // Bayrak resim URL'sini oluştur
 const getFlagImageUrl = (countryCode) => {
-    // Tam dosya yolunu belirtiyoruz
-    return `/public/flags/${countryCode}.svg`;
+    // Vercel için dosya yolunu düzeltiyoruz
+    return `./public/flags/${countryCode}.svg`;
 };
 
 // Bayrak önbelleğini oluştur
