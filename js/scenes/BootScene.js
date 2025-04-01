@@ -36,46 +36,57 @@ class BootScene extends Phaser.Scene {
             loadingText.destroy();
         });
         
-        // Temel görüntüleri yükle
-        this.load.image('background', 'assets/images/background.png');
-        this.load.image('logo', 'assets/images/logo.png');
-        this.load.image('button', 'assets/images/button.png');
-        this.load.image('button-hover', 'assets/images/button-hover.png');
-        this.load.image('panel', 'assets/images/panel.png');
-        
-        // Sesler
-        this.load.audio('correct', 'assets/sounds/correct.mp3');
-        this.load.audio('wrong', 'assets/sounds/wrong.mp3');
-        this.load.audio('hint', 'assets/sounds/hint.mp3');
-        this.load.audio('tick', 'assets/sounds/tick.mp3');
-        this.load.audio('game-over', 'assets/sounds/game-over.mp3');
-        this.load.audio('level-up', 'assets/sounds/level-up.mp3');
-        
-        // Ülke bayrakları verisini yükle
+        // Ülke bayrakları verisini yükle - kritik olan bu dosya
         this.load.json('flags-data', 'flags.json');
         
-        // Varsayılan Türkiye bayrağı
-        this.load.svg('tr', 'assets/flags/tr.svg');
-        
-        // Rozet görselleri
-        this.load.image('badge-level_5', 'assets/images/badge-level5.png');
-        this.load.image('badge-level_10', 'assets/images/badge-level10.png');
-        this.load.image('badge-level_20', 'assets/images/badge-level20.png');
-        this.load.image('badge-daily_mission', 'assets/images/badge-daily.png');
+        try {
+            // Varsayılan Türkiye bayrağı
+            this.load.svg('tr', 'assets/flags/tr.svg');
+            
+            // Diğer assetleri yüklemeyi dene ama olmazsa alternatifler oluşturulacak
+            // Bu dosyalar olmayabilir, bu durumda catch içinde alternatif oluşturacağız
+            this.load.image('background', 'assets/images/background.png');
+            this.load.image('logo', 'assets/images/logo.png');
+            this.load.image('button', 'assets/images/button.png');
+            this.load.image('button-hover', 'assets/images/button-hover.png');
+            this.load.image('panel', 'assets/images/panel.png');
+            
+            // Ses dosyaları - alternatif ses yok, yüklenemezse ses olmayacak
+            this.load.audio('correct', 'assets/sounds/correct.mp3');
+            this.load.audio('wrong', 'assets/sounds/wrong.mp3');
+            this.load.audio('hint', 'assets/sounds/hint.mp3');
+            this.load.audio('tick', 'assets/sounds/tick.mp3');
+            this.load.audio('game-over', 'assets/sounds/game-over.mp3');
+            this.load.audio('level-up', 'assets/sounds/level-up.mp3');
+        } catch (error) {
+            console.warn('Bazı varlıklar yüklenemedi - alternatifler oluşturulacak:', error);
+        }
     }
 
     create() {
-        // Bayrak verilerini al ve global değişkene kaydet
-        this.flags = this.cache.json.get('flags-data');
-        this.game.flags = this.flags;
-        
-        // Alternatif arkaplan ve butonları oluştur
-        if (!this.textures.exists('background')) {
+        try {
+            // Bayrak verilerini al ve global değişkene kaydet
+            this.flags = this.cache.json.get('flags-data');
+            this.game.flags = this.flags;
+            console.log('Bayraklar yüklendi:', this.flags ? this.flags.length : 0);
+            
+            // Alternatif arkaplan ve butonları oluştur
             this.createAlternativeAssets();
+            
+            // Ana menüye geç
+            this.scene.start('MainMenuScene');
+        } catch (error) {
+            console.error('Oyun başlatılırken hata oluştu:', error);
+            
+            // Hata durumunda kullanıcıya göster
+            const errorText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 
+                'Oyun yüklenirken bir hata oluştu!\nLütfen sayfayı yenileyin.', {
+                font: 'bold 20px Arial',
+                fill: '#ff0000',
+                align: 'center'
+            });
+            errorText.setOrigin(0.5);
         }
-        
-        // Ana menüye geç
-        this.scene.start('MainMenuScene');
     }
     
     createAlternativeAssets() {

@@ -199,21 +199,43 @@ class GameScene extends Phaser.Scene {
         // Bayrak kodu alınır
         const code = this.currentFlag.code;
         
-        // Eğer bayrak zaten yüklüyse göster
-        if (this.textures.exists(code)) {
-            this.flagImage.setTexture(code);
-            return;
+        try {
+            // Eğer bayrak zaten yüklüyse göster
+            if (this.textures.exists(code)) {
+                this.flagImage.setTexture(code);
+                return;
+            }
+            
+            // Yükleme hatası için önlem
+            if (!this.currentFlag || !code) {
+                console.error('Geçerli bayrak bulunamadı');
+                this.flagImage.setTexture('tr');
+                return;
+            }
+            
+            // Bayrağı dinamik olarak yükle
+            this.load.svg(code, `assets/flags/${code}.svg`);
+            this.load.once('complete', () => {
+                if (this.textures.exists(code)) {
+                    this.flagImage.setTexture(code);
+                } else {
+                    console.warn(`${code} bayrağı yüklenemedi`);
+                    this.flagImage.setTexture('tr'); 
+                }
+            });
+            
+            // Hata durumunda
+            this.load.once('loaderror', () => {
+                console.error(`${code} bayrağı yüklenirken hata oluştu`);
+                this.flagImage.setTexture('tr');
+            });
+            
+            this.load.start();
+        } catch (error) {
+            console.error('Bayrak yüklenirken hata:', error);
+            // Varsayılan olarak Türkiye bayrağı gösterilir
+            this.flagImage.setTexture('tr'); 
         }
-        
-        // Bayrağı dinamik olarak yükle
-        this.load.svg(code, `assets/flags/${code}.svg`);
-        this.load.once('complete', () => {
-            this.flagImage.setTexture(code);
-        });
-        this.load.start();
-        
-        // Yükleme hatası durumunda
-        this.flagImage.setTexture('tr'); // Varsayılan olarak Türkiye bayrağı gösterilir
     }
     
     createOptions() {
