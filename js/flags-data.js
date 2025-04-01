@@ -1,75 +1,110 @@
 /**
- * Bayrak Bilmece Oyunu - Ülke Verileri
- * Bu dosya tüm ülke bayraklarının verilerini içerir
+ * Bayrak Bilmece Oyunu - Phaser Sürümü
+ * Ülke Verileri İşlemleri
  */
 
-// Ülke verilerini yükle
-const loadFlagsData = async () => {
-    try {
-        // Vercel için dosya yolunu düzeltiyoruz
-        const response = await fetch('./flags.json');
-        const data = await response.json();
-        console.log('Bayrak verileri başarıyla yüklendi:', data.length);
-        return data;
-    } catch (error) {
-        console.error('Bayrak verileri yüklenirken hata oluştu:', error);
-        return [];
-    }
-};
-
-// Zorluk seviyelerine göre ülkeleri filtrele
-const filterFlagsByDifficulty = (flags, difficulty) => {
-    if (!difficulty || difficulty === 'ALL') {
-        return flags;
+class FlagsData {
+    constructor() {
+        this.flags = [];
     }
     
-    return flags.filter(flag => flag.difficulty === difficulty);
-};
-
-// Rastgele bir bayrak seç
-const getRandomFlag = (flags) => {
-    const randomIndex = Math.floor(Math.random() * flags.length);
-    return flags[randomIndex];
-};
-
-// Rastgele seçenekler oluştur (1 doğru, 3 yanlış)
-const generateOptions = (flags, correctFlag) => {
-    // Doğru cevabı dahil et
-    const options = [correctFlag];
-    
-    // Kullanılmış ülkelerin kodlarını takip et
-    const usedCodes = new Set([correctFlag.code]);
-    
-    // 3 yanlış cevap ekle
-    while (options.length < 4) {
-        const randomFlag = getRandomFlag(flags);
-        
-        // Eğer bu ülke daha önce eklenmemişse
-        if (!usedCodes.has(randomFlag.code)) {
-            options.push(randomFlag);
-            usedCodes.add(randomFlag.code);
+    /**
+     * Bayrak verilerini yükler
+     * @returns {Promise<Array>} - Ülke bayraklarının verileri
+     */
+    async loadFlags() {
+        try {
+            const response = await fetch('./flags.json');
+            if (!response.ok) {
+                throw new Error(`Bayrak verileri alınamadı: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Bayrak verileri başarıyla yüklendi:', data.length);
+            this.flags = data;
+            return data;
+        } catch (error) {
+            console.error('Bayrak verileri yüklenirken hata oluştu:', error);
+            return [];
         }
     }
     
-    // Seçenekleri karıştır
-    return shuffleArray(options);
-};
-
-// Diziyi karıştır (Fisher-Yates algoritması)
-const shuffleArray = (array) => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    /**
+     * Zorluk seviyesine göre bayrakları filtreler
+     * @param {string} difficulty - Zorluk seviyesi (EASY, MEDIUM, HARD veya ALL)
+     * @returns {Array} - Filtrelenmiş bayrak listesi
+     */
+    filterByDifficulty(difficulty) {
+        if (!difficulty || difficulty === 'ALL') {
+            return this.flags;
+        }
+        
+        return this.flags.filter(flag => flag.difficulty === difficulty);
     }
-    return newArray;
-};
+    
+    /**
+     * Rastgele bir bayrak seçer
+     * @param {Array} flags - Bayrak listesi
+     * @returns {Object} - Rastgele seçilen bayrak
+     */
+    getRandomFlag(flags = this.flags) {
+        const randomIndex = Math.floor(Math.random() * flags.length);
+        return flags[randomIndex];
+    }
+    
+    /**
+     * Karıştırılmış 4 seçenek oluşturur (1 doğru, 3 yanlış)
+     * @param {Object} correctFlag - Doğru cevap olan bayrak
+     * @returns {Array} - Karıştırılmış seçenekler
+     */
+    generateOptions(correctFlag) {
+        // Doğru cevabı dahil et
+        const options = [correctFlag];
+        
+        // Kullanılmış ülkelerin kodlarını takip et
+        const usedCodes = new Set([correctFlag.code]);
+        
+        // 3 yanlış cevap ekle
+        while (options.length < 4) {
+            const randomFlag = this.getRandomFlag();
+            
+            // Eğer bu ülke daha önce eklenmemişse
+            if (!usedCodes.has(randomFlag.code)) {
+                options.push(randomFlag);
+                usedCodes.add(randomFlag.code);
+            }
+        }
+        
+        // Seçenekleri karıştır
+        return this.shuffleArray(options);
+    }
+    
+    /**
+     * Diziyi karıştırır (Fisher-Yates algoritması)
+     * @param {Array} array - Karıştırılacak dizi
+     * @returns {Array} - Karıştırılmış dizi
+     */
+    shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+    }
+    
+    /**
+     * Bayrak resim URL'sini döndürür
+     * @param {string} countryCode - Ülke kodu
+     * @returns {string} - Bayrak resim URL'si
+     */
+    getFlagImageUrl(countryCode) {
+        return `assets/flags/${countryCode}.svg`;
+    }
+}
 
-// Bayrak resim URL'sini oluştur
-const getFlagImageUrl = (countryCode) => {
-    // Vercel için dosya yolunu düzeltiyoruz
-    return `./public/flags/${countryCode}.svg`;
-};
+// Singleton instance
+const flagsData = new FlagsData();
 
 // Bayrak önbelleğini oluştur
 const preloadFlags = async (flags) => {
@@ -81,7 +116,7 @@ const preloadFlags = async (flags) => {
                 console.error(`Bayrak yüklenemedi: ${flag.code}`, e);
                 resolve(); // Hata olsa bile devam et
             };
-            img.src = getFlagImageUrl(flag.code);
+            img.src = flagsData.getFlagImageUrl(flag.code);
         });
     });
     
